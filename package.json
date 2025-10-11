@@ -1,0 +1,16 @@
+{
+  "name": "flybooker",
+  "version": "1.0.0",
+  "description": "flybooker is a backend for flight booking system",
+  "main": "index.js",
+  "scripts": {
+    "start": "node --watch src/index.js"
+  },
+  "author": "Akash",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "http-status-codes": "^2.3.0"
+  }
+}
