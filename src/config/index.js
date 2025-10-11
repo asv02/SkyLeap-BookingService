@@ -1,6 +1,7 @@
-const dotenv = require("dotenv");
-dotenv.config(); // dotenv->Object, now dotenv.config()-gives a object(process.env) which has all environmental variables
+const { logger } = require("./logger-config");
+const serverConfig = require("./server-config");
 
 module.exports = {
-  PORT: process.env.PORT,
-};
+  serverConfig,
+  logger
+}
