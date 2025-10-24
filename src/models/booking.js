@@ -25,7 +25,7 @@ module.exports = (sequelize, DataTypes) => {
         values: [BOOKED, PENDING, INITIATED, CANCELLED],
         defaultValue: INITIATED,
       },
-      noOfSeats: { type: DataTypes.INTEGER, allowNull: false }, // number of seat want to book
+      noOfSeats: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 1 }, // number of seat want to book
       totalCost: { type: DataTypes.INTEGER, allowNull: false },
     },
     {
