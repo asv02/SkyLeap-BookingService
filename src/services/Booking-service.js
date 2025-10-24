@@ -7,7 +7,7 @@ const { serverConfig } = require("../config");
 const { json } = require("sequelize");
 
 const { BOOKING_STATUS } = require("../utils");
-const { BOOKED } = BOOKING_STATUS;
+const { BOOKED, CANCELLED } = BOOKING_STATUS;
 
 class BookingServices extends BookingRepositories {
   constructor() {
@@ -70,12 +70,20 @@ class BookingServices extends BookingRepositories {
   }
 
   async makePayment(data) {
+    const { bookingId, userId, totalCost } = data;
     try {
       const result = await db.sequelize.transaction(async (t) => {
-        const { bookingId, userId, totalCost } = data;
         const bookingDetails = await this.getBooking(bookingId, t);
 
-        console.log("Booking details->", bookingDetails);
+        console.log("Booking details->", bookingDetails.dataValues);
+
+        const bookingTime =
+          new Date() - new Date(bookingDetails.dataValues.createdAt);
+        console.log(bookingTime);
+
+        if (bookingTime > 300000) {
+          throw new ApiError("Booking Expired", StatusCodes.BAD_REQUEST);
+        }
 
         if (
           !bookingDetails ||
@@ -94,8 +102,52 @@ class BookingServices extends BookingRepositories {
       });
       return result;
     } catch (error) {
-      console.log("Error->", error);
+      if (error.message === "Booking Expired") {
+        try {
+          const resp = await this.cancelBooking(bookingId);
+          console.log("resp->", resp);
+        } catch (error) {
+          throw error;
+        }
+      }
+      console.log("catch block.....");
       throw error;
+    }
+  }
+
+  async cancelBooking(bookingId) {
+    try {
+      const result = await db.sequelize.transaction(async (t) => {
+        const bookingDetails = await this.getBooking(bookingId, t);
+
+        if (bookingDetails.status === CANCELLED) {
+          return true;
+        }
+
+        const flightId = bookingDetails.flightId;
+        const noOfSeats = bookingDetails.noOfSeats;
+        console.log("cancelling seats ..........");
+        const temp = await fetch(
+          `${serverConfig.SKYLEAP_BASE_SERVICE}/api/v1/flight_routes/updateflight/${flightId}`,
+          {
+            method: "PATCH",
+            body: JSON.stringify({ seats: noOfSeats, desc: false }),
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        console.log("Seat updated..........", temp);
+        await this.update({ status: CANCELLED, bookingId: bookingId }, t);
+        return true;
+      });
+      return result;
+    } catch (error) {
+      console.log("Error in cancel:", error);
+      throw new ApiError(
+        `Seat update failed due to:` + error.message,
+        StatusCodes.INTERNAL_SERVER_ERROR
+      );
     }
   }
 }
