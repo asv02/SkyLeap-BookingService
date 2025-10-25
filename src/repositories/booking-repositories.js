@@ -1,5 +1,8 @@
 const { CrudRepo } = require("./crud-repo");
 const { Booking } = require("../models");
+const { Op } = require("sequelize");
+const { BOOKING_STATUS } = require("../utils");
+const { BOOKED, CANCELLED, INITIATED } = BOOKING_STATUS;
 
 class BookingRepositories extends CrudRepo {
   constructor() {
@@ -41,6 +44,22 @@ class BookingRepositories extends CrudRepo {
     } catch (error) {
       console.log(error);
       throw error;
+    }
+  }
+
+  async cancelOldBooking(timeStamp) {
+    try {
+      const response = await Booking.update(
+        { status: CANCELLED },
+        {
+          where: {
+            createdAt: { [Op.lt]: timeStamp},status: { [Op.ne]: BOOKED }
+          },
+        }
+      );
+      return response;
+    } catch (error) {
+      console.log("error in timestamp->", error);
     }
   }
 }

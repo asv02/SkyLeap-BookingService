@@ -150,6 +150,16 @@ class BookingServices extends BookingRepositories {
       );
     }
   }
+
+  async cancelOldBookings() {
+    const time = new Date(Date.now() - 5 * 60 * 1000);
+    try {
+      const resp = await this.cancelOldBooking(time);
+      return resp;
+    } catch (error) {
+      console.log("Error in service cancel:", error);
+    }
+  }
 }
 
 module.exports = { BookingServices };

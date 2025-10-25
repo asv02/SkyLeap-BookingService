@@ -1,7 +1,7 @@
 const express = require("express");
 const { serverConfig, logger } = require("./config");
 const apiroutes = require("./routes");
-const { cronJobs } = require("./utils");
+const { cronJobs } = require("./utils/common/cronJobs");
 
 const app = express();
 
